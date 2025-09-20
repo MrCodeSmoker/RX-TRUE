@@ -112,3 +112,44 @@ elif choice == "Verify Prescription":
             st.json(data)
         else:
             st.error("Prescription is INVALID ❌")
+1. Frontend / User Interface
+
+Streamlit – For building interactive dashboards for doctors, pharmacists, and patients.
+
+Features: Upload prescriptions, enter text, display extracted data, show verification results.
+
+2. NLP / Text Processing
+
+Python – Core programming language.
+
+spaCy / NLTK / Hugging Face Transformers – To extract drug names, dosage, frequency, and duration from prescriptions.
+
+OCR (Tesseract / Google Vision API) – If handwritten prescriptions or scanned images need to be converted to text.
+
+3. Blockchain / Security
+
+Ethereum (Solidity + Web3.py) – To store prescription hashes immutably.
+
+Hyperledger Fabric (optional for private blockchain) – Alternative for permissioned networks in hospitals.
+
+SHA-256 Hashing – To generate unique, tamper-proof prescription identifiers.
+
+Digital Signatures (RSA / ECDSA) – For authenticating doctor-issued prescriptions.
+
+4. Backend / Data Storage
+
+Python (Flask / FastAPI) – Optional for API integration between NLP, blockchain, and frontend.
+
+Database:
+
+MongoDB or PostgreSQL – Off-chain storage for complete prescription details and metadata.
+
+5. Miscellaneous / Utilities
+
+JSON – For structured prescription data exchange.
+
+qrcode Python library – To generate QR codes for prescription verification.
+
+Git / GitHub – Version control for project development.
+
+Cloud Hosting (Heroku / Streamlit Cloud / AWS) – For deploying the web application.
