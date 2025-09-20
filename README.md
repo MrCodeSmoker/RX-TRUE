@@ -202,3 +202,119 @@ def verify(prescription_hash: str):
         return {"message": "Prescription is VALID ✅", "prescription_data": data}
     else:
         raise HTTPException(status_code=404, detail="Prescription is INVALID ❌")
+
+
+        # Import Libraries
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from pydantic import BaseModel
+import hashlib
+import json
+import spacy
+import pytesseract
+from PIL import Image
+import io
+
+# Load NLP model
+nlp = spacy.load("en_core_web_sm")
+
+# Simulated Blockchain Ledger
+blockchain = []
+
+# NLP Extraction Function for Multiple Drugs
+def extract_drug_info(text):
+    doc = nlp(text)
+    drugs = []
+    dosage_list = []
+    frequency_list = []
+    duration_list = []
+
+    # Extract drug names using simple keyword matching for demo purposes
+    # For production, integrate with DrugBank / RxNorm
+    drug_keywords = ["paracetamol", "amoxicillin", "ibuprofen", "metformin", "aspirin"]  # Extend as needed
+    for token in doc:
+        if token.text.lower() in drug_keywords:
+            drugs.append(token.text)
+
+    # Extract dosage, frequency, duration using simple heuristics
+    for token in doc:
+        if "mg" in token.text.lower():
+            dosage_list.append(token.text)
+        if token.text.lower() in ["once", "twice", "thrice", "daily"]:
+            frequency_list.append(token.text)
+        if "day" in token.text.lower() or "week" in token.text.lower():
+            duration_list.append(token.text)
+
+    # Fallback for empty lists
+    if not drugs:
+        drugs.append("UnknownDrug")
+    if not dosage_list:
+        dosage_list.append("Not specified")
+    if not frequency_list:
+        frequency_list.append("Not specified")
+    if not duration_list:
+        duration_list.append("Not specified")
+
+    # Combine multiple drugs into structured format
+    prescriptions = []
+    for i in range(len(drugs)):
+        prescriptions.append({
+            "drug": drugs[i],
+            "dosage": dosage_list[i] if i < len(dosage_list) else "Not specified",
+            "frequency": frequency_list[i] if i < len(frequency_list) else "Not specified",
+            "duration": duration_list[i] if i < len(duration_list) else "Not specified"
+        })
+    return prescriptions
+
+# Function to add prescription to blockchain
+def add_prescription_to_blockchain(prescriptions, doctor_id, patient_id):
+    prescription_json = json.dumps(prescriptions, sort_keys=True)
+    prescription_hash = hashlib.sha256(prescription_json.encode()).hexdigest()
+    block = {
+        "doctor_id": doctor_id,
+        "patient_id": patient_id,
+        "prescription_hash": prescription_hash,
+        "prescriptions": prescriptions
+    }
+    blockchain.append(block)
+    return prescription_hash
+
+# Function to verify prescription
+def verify_prescription(prescription_hash):
+    for block in blockchain:
+        if block["prescription_hash"] == prescription_hash:
+            return True, block["prescriptions"]
+    return False, None
+
+# Create FastAPI App
+app = FastAPI(title="Extended Blockchain-Integrated Prescription API")
+
+# ----------------- API Routes ----------------- #
+
+# Route 1: Add Prescription (Text Input)
+@app.post("/add_prescription_text/")
+def add_prescription_text(doctor_id: str = Form(...), patient_id: str = Form(...), prescription_text: str = Form(...)):
+    prescriptions = extract_drug_info(prescription_text)
+    presc_hash = add_prescription_to_blockchain(prescriptions, doctor_id, patient_id)
+    return {"message": "Prescription added successfully", "prescription_hash": presc_hash, "extracted_prescriptions": prescriptions}
+
+# Route 2: Add Prescription (Image Upload)
+@app.post("/add_prescription_image/")
+def add_prescription_image(doctor_id: str = Form(...), patient_id: str = Form(...), file: UploadFile = File(...)):
+    try:
+        image = Image.open(io.BytesIO(file.file.read()))
+        text = pytesseract.image_to_string(image)
+        prescriptions = extract_drug_info(text)
+        presc_hash = add_prescription_to_blockchain(prescriptions, doctor_id, patient_id)
+        return {"message": "Prescription added successfully", "prescription_hash": presc_hash, "extracted_prescriptions": prescriptions}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing image: {e}")
+
+# Route 3: Verify Prescription
+@app.get("/verify_prescription/{prescription_hash}")
+def verify(prescription_hash: str):
+    valid, prescriptions = verify_prescription(prescription_hash)
+    if valid:
+        return {"message": "Prescription is VALID ✅", "prescriptions": prescriptions}
+    else:
+        raise HTTPException(status_code=404, detail="Prescription is INVALID ❌")
+
