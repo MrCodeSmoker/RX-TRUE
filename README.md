@@ -1,2 +1,2 @@
 # RX-TRUE
- The Blockchain-Integrated Prescription System uses NLP to extract drug details (name, dosage, frequency, duration) from prescriptions and securely stores them on blockchain to ensure immutability and authenticity.
+ The Blockchain-Integrated Prescription System uses NLP to extract drug details (name, dosage, frequency, duration) from prescriptions and securely stores them on blockchain to ensure immutability and authenticity.Through a Streamlit-based interface, doctors can issue prescriptions, pharmacists can verify them, and patients can access their records, reducing fraud, errors, and improving trust in healthcare.
